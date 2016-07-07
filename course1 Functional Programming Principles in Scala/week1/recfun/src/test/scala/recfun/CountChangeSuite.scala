@@ -9,6 +9,7 @@ import org.scalatest.junit.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class CountChangeSuite extends FunSuite {
   import Main.countChange
+  
   test("countChange: example given in instructions") {
     assert(countChange(4,List(1,2)) === 3)
   }
@@ -25,4 +26,15 @@ class CountChangeSuite extends FunSuite {
     assert(countChange(300,List(500,5,50,100,20,200,10)) === 1022)
   }
 
+  test("countChange: no coins") {
+    assert(countChange(4,List()) === 0)
+  }
+
+  test("countChange: zero money") {
+    assert(countChange(0,List(1,2)) === 0)
+  }
+    
+  test("countChange: empty coins list") {
+    assert(countChange(4,List()) === 0)
+  }
 }
