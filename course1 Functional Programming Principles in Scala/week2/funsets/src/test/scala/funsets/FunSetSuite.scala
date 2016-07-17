@@ -109,6 +109,91 @@ class FunSetSuite extends FunSuite {
       assert(!contains(s, 3), "Union 3")
     }
   }
+  
+  test("intersect contains elements that are both in 2 sets") {
+    new TestSets {
+      val s = intersect(union(s1, s2), union(s1, s3))
 
+      assert(contains(s, 1), "Intersect 1")
+      assert(!contains(s, 2), "Intersect 2")
+      assert(!contains(s, 3), "Intersect 3")
+    }
+  }
+  
+  test("intersect not contains elements that are not both in 2 sets") {
+    new TestSets {     
+      val s = intersect(s1, s2)
 
+      assert(!contains(s, 1), "Intersect 4")
+      assert(!contains(s, 2), "Intersect 5")
+      assert(!contains(s, 3), "Intersect 6")
+    }
+  }
+  
+  test("diff contains elements that are in set 1 not in set 2") {
+    new TestSets {     
+      val s = diff(union(s1, s2), s2)
+      
+      assert(contains(s, 1), "Diff 1: (s1+s2)-s2")
+      assert(!contains(s, 2), "Diff 2: (s1+s2)-s2")
+      assert(!contains(s, 3), "Diff 3: (s1+s2)-s2")
+      
+      val t = diff(s1, s3)
+      assert(contains(t, 1), "Diff 4: s1-s2")
+      assert(!contains(t, 2), "Diff 5: s1-s2")
+      assert(!contains(t, 3), "Diff 6: s1-s3")
+      
+    }
+  }
+
+  test("filter ") {
+    new TestSets { 
+      val s = filter(union(s1,s2), (x:Int)=>(x<2))
+
+      assert(contains(s, 1), "(1,2) filter element<2 contain 1")
+      assert(!contains(s, 2), "(1,2) filter element<2 contain 2")
+      assert(!contains(s, 3), "(1,2) filter element<2 contain 3")
+      
+      val t = filter(union(s1,s2), (x:Int)=>(x>2))
+
+      assert(!contains(t, 1), "(1,2) filter element>2 not contain 1")
+      assert(!contains(t, 2), "(1,2) filter element>2 not contain 2")
+      assert(!contains(t, 3), "(1,2) filter element>2 not contain 3")
+    }
+  }
+  
+  test("forall ") {
+    new TestSets { 
+      val s = union(s1,s2)
+
+      assert(!forall(s, (x:Int)=>(x < 1)), "(1,2) all not in (x<1)")
+      assert(forall(s, (x:Int)=>(x > -5)), "(1,2) all in (x>-5)")
+      assert(!forall(s, (x:Int)=>(x < 2)), "(1,2) not all in (x<2)")
+      
+    }
+  }
+  
+  
+  test("exists ") {
+    new TestSets { 
+      val s = union(s1,s2)
+
+      assert(!exists(s, (x:Int)=>(x < 1)), "(1,2) not exists in (x<1)")
+      assert(exists(s, (x:Int)=>(x > -5)), "(1,2) exists in (x>-5)")
+      assert(exists(s, (x:Int)=>(x < 2)), "(1,2) exists in (x<2)")
+
+    }
+  }
+  
+  
+  test("map ") {
+    new TestSets { 
+      val s = map(union(s1,s2), (x:Int)=>x*x*x)
+
+      assert(contains(s, 1), "Map 1")
+      assert(contains(s, 8), "Map 2")
+      assert(!contains(s, 9), "Map 3")
+
+    }
+  }
 }
