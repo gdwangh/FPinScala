@@ -11,6 +11,8 @@ class TweetSetSuite extends FunSuite {
   trait TestSets {
     val set1 = new Empty
     val set2 = set1.incl(new Tweet("a", "a body", 20))
+    val set22 = set1.incl(new Tweet("b", "b body", 20))
+
     val set3 = set2.incl(new Tweet("b", "b body", 20))
     val c = new Tweet("c", "c body", 7)
     val d = new Tweet("d", "d body", 9)
@@ -33,6 +35,12 @@ class TweetSetSuite extends FunSuite {
     }
   }
 
+  test("filter: a on set2") {
+    new TestSets {
+      assert(size(set2.filter(tw => tw.user == "a")) === 1)
+    }
+  }
+    
   test("filter: a on set5") {
     new TestSets {
       assert(size(set5.filter(tw => tw.user == "a")) === 1)
@@ -42,12 +50,6 @@ class TweetSetSuite extends FunSuite {
   test("filter: 20 on set5") {
     new TestSets {
       assert(size(set5.filter(tw => tw.retweets == 20)) === 2)
-    }
-  }
-
-  test("union: set4c and set4d") {
-    new TestSets {
-      assert(size(set4c.union(set4d)) === 4)
     }
   }
 
@@ -62,6 +64,36 @@ class TweetSetSuite extends FunSuite {
       assert(size(set1.union(set5)) === 4)
     }
   }
+  
+  test("union: with same set (3)") {
+    new TestSets {
+      assert(size(set2.union(set2)) === 1)
+    }
+  }
+  
+  test("union: with sub set (4)") {
+    new TestSets {
+      assert(size(set3.union(set2)) === 2)
+    }
+  }
+
+  test("union: with diff set (5)") {
+    new TestSets {
+      assert(size(set2.union(set22)) === 2)
+    }
+  }
+ 
+  test("union: with diff set and then same set (6)") {
+    new TestSets {
+      assert(size((set2.union(set22)).union(set3)) === 2)
+    }
+  }
+  test("union: set4c and set4d") {
+    new TestSets {
+      assert(size(set4c.union(set4d)) === 4)
+    }
+  }
+  
 
   test("descending: set5") {
     new TestSets {
