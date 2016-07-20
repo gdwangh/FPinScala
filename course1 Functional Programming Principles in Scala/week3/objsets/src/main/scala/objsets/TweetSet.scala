@@ -42,7 +42,7 @@ abstract class TweetSet {
    * and be implemented in the subclasses?
    */
   //  def filter(p: Tweet => Boolean): TweetSet = ???
-  def filter(p: Tweet => Boolean): TweetSet = filterAcc(p, this)
+  def filter(p: Tweet => Boolean): TweetSet = filterAcc(p, new Empty)
   
   /**
    * This is a helper method for `filter` that propagetes the accumulated tweets.
@@ -62,7 +62,7 @@ abstract class TweetSet {
    * and be implemented in the subclasses?
    */
    // def union(that: TweetSet): TweetSet = ???
-   // 暂时想不出在这里如何实现，先挪到子类中
+   // 暂时想不出在这里如何实现，先挪到子类中。分empty和NonEmpty分别定义会简单很多
    def union(that: TweetSet): TweetSet
   
   /**
@@ -120,7 +120,7 @@ abstract class TweetSet {
 
 class Empty extends TweetSet {
   //  def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = ???
-  def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = new Empty
+  def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = acc
   
   // 从父类中挪到这里实现
   def union(that: TweetSet): TweetSet = that
@@ -152,9 +152,9 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
 
   // def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = ???
   def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = 
-    if (p(elem)) new NonEmpty(elem, left.filter(p), right.filter(p))
+    if (p(elem)) right.filterAcc(p, left.filterAcc(p, acc incl elem))
     else
-      left.filter(p) union right.filter(p)
+      right.filterAcc(p, left.filterAcc(p, acc))
   
   // 从父类中挪到这里实现
   def union(that: TweetSet): TweetSet = {
