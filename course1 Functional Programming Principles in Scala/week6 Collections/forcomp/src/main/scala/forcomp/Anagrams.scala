@@ -100,15 +100,13 @@ object Anagrams {
    */
   // def combinations(occurrences: Occurrences): List[Occurrences] = ???
   def combinations(occurrences: Occurrences): List[Occurrences] = occurrences match {
- 			case Nil => List(List())
- 			case head::tails => val tailSub = combinations(tails)
- 													 													
- 													(for {cnt <- 1 to occurrences.head._2
-																s2 <- tailSub
-													     }
- 														 yield (occurrences.head._1, cnt)::s2
- 													).toList:::tailSub
-    } 
+     case Nil => List(Nil)
+     case List((ch, cnt)) => List(Nil):::(1 to cnt).toList.map(i => List((ch, i))) // 单个字母的subsets
+     case head::tails => for {headSub <- combinations(List(head))
+     													tailSub <- combinations(tails)
+     												 }
+     													yield headSub:::tailSub
+  }
 
   /** Subtracts occurrence list `y` from occurrence list `x`.
    *
