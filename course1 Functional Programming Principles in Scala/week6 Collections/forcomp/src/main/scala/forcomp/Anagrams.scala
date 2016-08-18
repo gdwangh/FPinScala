@@ -101,11 +101,10 @@ object Anagrams {
   // def combinations(occurrences: Occurrences): List[Occurrences] = ???
   def combinations(occurrences: Occurrences): List[Occurrences] = occurrences match {
      case Nil => List(Nil)
-     case List((ch, cnt)) => List(Nil):::(1 to cnt).toList.map(i => List((ch, i))) // 单个字母的subsets
-     case head::tails => for {headSub <- combinations(List(head))
-     													tailSub <- combinations(tails)
-     												 }
-     													yield headSub:::tailSub
+     case (ch,cnt)::tails => for {headSub <- List(Nil):::(1 to cnt).toList.map(i => List((ch, i))) // 单个字母的subsets
+     													    tailSub <- combinations(tails)
+     												     }
+     													    yield headSub:::tailSub
   }
 
   /** Subtracts occurrence list `y` from occurrence list `x`.
@@ -182,10 +181,10 @@ object Anagrams {
     			List(Nil)
   		else
 			  for {occurSlice <- combinations(occurrences) if occurSlice!=Nil
+			       restOcc = subtract(occurrences, occurSlice)
 					   word <- wordListForOccurrences(occurSlice) if word != Nil
-					   leftOcc = subtract(occurrences, occurSlice)
-    		 		 leftAma <- iterAnagrams(leftOcc)
+    		 		 restAma <- iterAnagrams(restOcc)
 					  }
-					  yield word::leftAma
+					  yield word::restAma
 
 }
