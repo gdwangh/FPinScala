@@ -51,4 +51,40 @@ class CalculatorSuite extends FunSuite with ShouldMatchers {
     assert(resultRed2() == "red")
   }
 
+  test("eval expr Ref") {
+    val references : Map[String, Signal[Expr]]= Map("a"->Signal(Literal(2.5)), 
+                                                    "b"->Signal(Ref("a")),
+                                                    "c"->Signal(Ref("c")),
+                                                    "d"->Signal(Ref("e")),
+                                                    "e"->Signal(Ref("d")))
+                                                    
+    val resulta = Calculator.eval(Literal(2.5), references, Set("a"))
+    assert(resulta === 2.5)
+    
+    val resultb = Calculator.eval(Ref("a"), references, Set("b"))
+    assert(resultb === 2.5)
+    
+    val resultc = Calculator.eval(Ref("c"), references, Set("c"))
+    assert(resultc.isNaN() === true)
+    
+    val resultd = Calculator.eval(Ref("d"), references, Set("d"))
+    assert(resultd.isNaN() === true)
+  }
+  
+  test("eval expr Plus") {
+    val references : Map[String, Signal[Expr]]= Map("a"->Signal(Literal(2.5)), 
+                                                    "b"->Signal(Plus(Ref("a"), Literal(1))),
+                                                    "c"->Signal(Plus(Ref("c"), Literal(1))),
+                                                    "d"->Signal(Plus(Ref("e"), Literal(1))),
+                                                    "e"->Signal(Plus(Ref("f"), Literal(1))),
+                                                    "g"->Signal(Plus(Ref("d"), Literal(1))))
+    val resultb = Calculator.eval(Plus(Ref("a"), Literal(1)), references, Set("b"))
+    assert(resultb === 3.5)
+    
+    val resultc = Calculator.eval(Plus(Ref("c"), Literal(1)), references, Set("c"))
+    assert(resultc.isNaN() === true)
+    
+    val resultd = Calculator.eval(Plus(Ref("e"), Literal(1)), references, Set("d"))
+    assert(resultd.isNaN() === true)
+  }
 }
