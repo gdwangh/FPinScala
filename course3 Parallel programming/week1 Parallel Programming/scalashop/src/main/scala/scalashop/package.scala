@@ -44,26 +44,25 @@ package object scalashop {
     if (radius==0) 
       src(x,y)
     else {
-        var sum_a = 0
-        var sum_r = 0
-        var sum_g = 0
-        var sum_b = 0
-        var len = 0
+        // 取出范围内所有的点，包括中心点
+        val rgbaList = (
+              for { px <- clamp((x-radius), 0, src.width-1) to clamp((x+radius), 0, src.width-1)
+                    py <- clamp(y-radius, 0, src.height-1) to clamp(y+radius, 0, src.height-1)
+                   } 
+                   yield  src(px, py) 
+           ).toList
+         
+        // 计算所有点的各个分量的平均值
+        val meanList = List(red(_), green(_), blue(_), alpha(_)).map(f => avg(rgbaList.map(f(_))))
         
-        for { px <- clamp((x-radius), 0, src.width-1) to clamp((x+radius), 0, src.width-1)
-              py <- clamp(y-radius, 0, src.height-1) to clamp(y+radius, 0, src.height-1) // if ((px!=x)||(py!=y)) 核心点也要计算在内
-              p_rgba = src(px, py) 
-             } {    
-                 sum_a += alpha(p_rgba)
-                 sum_r += red(p_rgba)
-                 sum_g += green(p_rgba)
-                 sum_b += blue(p_rgba)  
-                 len += 1
-               }
-             
-        rgba(sum_r/len, sum_g/len, sum_b/len, sum_a/len)
-        
+         // 合成新的rgba
+        rgba(meanList(0), meanList(1), meanList(2), meanList(3))
     }
     
   }
+  
+  // helper function
+  def avg(l:List[Int]):Int = 
+    l.reduce((x1, x2) => x1+x2)/l.length
+    
 }
