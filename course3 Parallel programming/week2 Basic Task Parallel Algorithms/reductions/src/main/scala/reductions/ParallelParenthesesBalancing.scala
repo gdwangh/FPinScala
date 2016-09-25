@@ -41,22 +41,60 @@ object ParallelParenthesesBalancing {
   /** Returns `true` iff the parentheses in the input `chars` are balanced.
    */
   def balance(chars: Array[Char]): Boolean = {
-    ???
+    // ???
+    var pos = 0
+    var bal_cnt = 0
+    
+    while ((bal_cnt>=0) && (pos < chars.length)) {
+        if (chars(pos)=='(') bal_cnt += 1
+        else 
+          if (chars(pos)==')') bal_cnt -= 1
+        pos += 1
+    }
+    bal_cnt == 0
   }
 
   /** Returns `true` iff the parentheses in the input `chars` are balanced.
    */
   def parBalance(chars: Array[Char], threshold: Int): Boolean = {
 
-    def traverse(idx: Int, until: Int, arg1: Int, arg2: Int) /*: ???*/ = {
-      ???
+    // def traverse(idx: Int, until: Int, arg1: Int, arg2: Int) /*: ???*/ = {
+    // arg1: 多余的左括号，arg2：多余的右括号, 如果两者都不为0,模式只能是 一个或多个)在一个或多个(之前
+    def traverse(idx: Int, until: Int, arg1: Int, arg2: Int):(Int, Int) = {
+      // ???
+      var pos = idx
+      var l_cnt = arg1
+      var r_cnt = arg2
+      
+      while (pos < until) {
+        if (chars(pos) == '(') l_cnt+=1   // 增加一个未成对的左括号
+        else if (chars(pos)==')') 
+                if (l_cnt > 0) l_cnt -= 1   // 抵消一个未成对的左括号
+                else r_cnt += 1  // 增加一个未成对的右括号
+             
+        pos+=1
+      }
+      
+      (l_cnt, r_cnt)
     }
 
-    def reduce(from: Int, until: Int) /*: ???*/ = {
-      ???
+    // def reduce(from: Int, until: Int) /*: ???*/ = {
+    def reduce(from: Int, until: Int) : (Int,Int) = {  // 返回：(没成对的左括号，没成对的右括号)
+      //???
+      if (until - from <= threshold) {
+        traverse(from, until, 0, 0)
+      }  else {
+        val mid = from + (until - from) / 2
+        val ((ll, lr),(rl, rr)) = parallel(reduce(from, mid), reduce(mid, until))
+        if (ll>rr)  // 左边多余的左括号 比 右边多余的右括号多
+            (ll-rr+rl, lr)
+        else
+          (rl, rr-ll+lr)
+       }
     }
 
-    reduce(0, chars.length) == ???
+    // reduce(0, chars.length) == ???
+    reduce(0, chars.length) == (0,0)
   }
 
   // For those who want more:
