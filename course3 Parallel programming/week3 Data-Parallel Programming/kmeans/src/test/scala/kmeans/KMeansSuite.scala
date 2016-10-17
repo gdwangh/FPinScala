@@ -71,6 +71,59 @@ class KMeansSuite extends FunSuite {
     checkParClassify(points, means, expected)
   }
 
+  test("'converged' should work for 'oldMeans' == GenSeq((1,1,1), ..., (99,99,99)) and 'newMeans' == GenSeq((1,1,1), ..., (99, 99, 99))") {
+    var oldMeans: GenSeq[Point] = IndexedSeq()
+    var newMeans: GenSeq[Point] = IndexedSeq()
+    
+    for (x<- 0 to 99) {
+      oldMeans = oldMeans :+ new Point(x,x,x)
+      newMeans = oldMeans :+ new Point(x,x,x)
+    }
+   assert(converged(0.1)(oldMeans, newMeans) === true, "GenSeq((1,1,1), ..., (99,99,99)) ")
+  }
+
+  test("'converged' should work for 'oldMeans' == GenSeq() and 'newMeans' == GenSeq()") {
+    var oldMeans: GenSeq[Point] = IndexedSeq()
+    var newMeans: GenSeq[Point] = IndexedSeq()
+    assert(converged(0.1)(oldMeans, newMeans) === true, "GenSeq() ")
+  }
+  
+  test("'converged' should work for 'oldMeans' == GenSeq((1,1,1), ..., (99,99,99)) and 'newMeans' == GenSeq((1,1,1), ..., (99, 99, 99.01))") {
+    var oldMeans: GenSeq[Point] = IndexedSeq()
+    var newMeans: GenSeq[Point] = IndexedSeq()
+    
+    for (x<- 0 to 99) {
+      oldMeans = oldMeans :+ new Point(x,x,x)
+      newMeans = oldMeans :+ new Point(x,x,x)
+    }
+    newMeans.updated(99, 99.01)
+    assert(converged(0.1)(oldMeans, newMeans) === true, "GenSeq((1,1,1), ..., (99,99,99.01)) ")
+  }
+  
+  def checkParKMeans(points: GenSeq[Point], means: GenSeq[Point], eta: Double, expected: GenSeq[Point]) {
+    assert(kMeans(points.par, means.par, eta) === expected,
+      s" --- kMeans($points par, $means par, $eta) should equal to $expected")
+  }
+  
+  test("'kMeans' should work for 'points' == GenSeq((0, 0, 1), (0,0, -1), (0,1,0), (0,10,0)) and 'oldMeans' == GenSeq((0, -1, 0), (0, 2, 0)) and 'eta' == 12.25") {
+    val p1 = new Point(0, 0, 1)
+    val p2 = new Point(0,0, -1)
+    val p3 = new Point(0,1,0)
+    val p4 = new Point(0,10,0)
+    val points: GenSeq[Point] = IndexedSeq(p1, p2, p3, p4)
+    
+    val mean1 = new Point(0, -1, 0)
+    val mean2 = new Point(0, 2, 0)
+    val means: GenSeq[Point] = IndexedSeq(mean1, mean2)
+    
+    val p5 = new Point(0.0, 0.0, 0.0)
+    val p6 = new Point(0.0, 5.5, 0.0) 
+    val expected:GenSeq[Point] = IndexedSeq(p5,p6)
+    
+    val eta = 12.25
+    checkParKMeans(points, means, eta, expected)
+  }
+  
 }
 
 

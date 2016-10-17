@@ -23,7 +23,9 @@ class KMeans {
 
   def initializeMeans(k: Int, points: Seq[Point]): Seq[Point] = {
     val rand = new Random(7)
-    (0 until k).map(_ => points(rand.nextInt(points.length))).to[mutable.ArrayBuffer]
+    
+    // 在输入的points中随机取k个点作为初始中点
+    (0 until k).map(_ => points(rand.nextInt(points.length))).to[mutable.ArrayBuffer]  
   }
 
   def findClosest(p: Point, means: GenSeq[Point]): Point = {
@@ -43,7 +45,10 @@ class KMeans {
   }
 
   def classify(points: GenSeq[Point], means: GenSeq[Point]): GenMap[Point, GenSeq[Point]] = {
-    ???
+      // ???
+    var result = points.groupBy { p => findClosest(p, means) }
+    means.filterNot { result contains _ }.foreach { m => result += (m, IndexedSeq()) }
+    result
   }
 
   def findAverage(oldMean: Point, points: GenSeq[Point]): Point = if (points.length == 0) oldMean else {
@@ -58,18 +63,34 @@ class KMeans {
     new Point(x / points.length, y / points.length, z / points.length)
   }
 
+  // classified: map(旧的cluster mean，距离旧  cluster mean较近的points构成的cluster)
+  // returns the new sequence of means
+  // 为了后面测试是否收敛，返回的新的mean要和旧的mean相同的顺序
   def update(classified: GenMap[Point, GenSeq[Point]], oldMeans: GenSeq[Point]): GenSeq[Point] = {
-    ???
+    // ???
+    oldMeans.map { old => findAverage(old, classified.getOrElse(old, IndexedSeq())) }
   }
 
   def converged(eta: Double)(oldMeans: GenSeq[Point], newMeans: GenSeq[Point]): Boolean = {
-    ???
+    // ???   
+   if (oldMeans.isEmpty) true
+   else     
+      !(1 until oldMeans.length).exists{ idx => oldMeans(idx).squareDistance(newMeans(idx)) > eta}
   }
 
+  // return the sequence of means
   @tailrec
   final def kMeans(points: GenSeq[Point], means: GenSeq[Point], eta: Double): GenSeq[Point] = {
-    if (???) kMeans(???, ???, ???) else ??? // your implementation need to be tail recursive
+    // if (???) kMeans(???, ???, ???) else ??? // your implementation need to be tail recursive
+    val classified = classify(points, means)   // map(oldmean, closest_points)
+    val newMeans = update(classified, means)   // newMeans
+        
+    if (!converged(eta)(means, newMeans)) 
+      kMeans(points, newMeans, eta)
+    else 
+      newMeans
   }
+  
 }
 
 /** Describes one point in three-dimensional space.
@@ -114,6 +135,8 @@ object KMeansRunner {
       val parMeans = means.par
       kMeans.kMeans(parPoints, parMeans, eta)
     }
+    
+    println(s"sequential time: $seqtime ms")
     println(s"parallel time: $partime ms")
     println(s"speedup: ${seqtime / partime}")
   }
