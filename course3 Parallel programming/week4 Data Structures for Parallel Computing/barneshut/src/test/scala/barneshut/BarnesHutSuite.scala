@@ -73,7 +73,69 @@ import FloatOps._
         fail("Empty.insert() should have returned a Leaf, was $inserted")
     }
   }
+  
+   test("Fork.insert(b) should return a new Fork with all the existing bodies and the new one") {
+          val a = new Body(123f, 18f, 26f, 0f, 0f)
 
+          val nw = Leaf(17.5f, 27.5f, 5f, Seq(a))
+          val ne = Empty(22.5f, 27.5f, 5f)
+          val sw = Empty(17.5f, 32.5f, 5f)
+          val se = Empty(22.5f, 32.5f, 5f)
+          val quad = Fork(nw, ne, sw, se)
+
+           val b = new Body(3f, 23f, 33f, 0f, 0f)
+    
+          val inserted = quad.insert(b)
+          
+          inserted match {
+            case Fork(newnw, newne, newsw, newse) =>
+              assert(inserted.total === 2, s"${inserted.total} should be 2")
+              assert(inserted.mass === 126f, s"${inserted.mass} should be 126f")
+              assert(inserted.size === 10f, s"${inserted.size} should be 10f")
+              assert(newnw.contain(a)===true, s"nw should contain only the existing body")
+              assert(newse.contain(b)===true, s"se should contain only the inserted body")
+            case _ =>
+              fail("Empty.insert() should have returned a Leaf, was $inserted")
+          }
+  }
+  
+   
+  test("Leaf.insert(b) should return the Leaf with all the existing bodies and the new one  if size <= minimumSize") {
+      val a = new Body(123f, 18f, 26f, 0f, 0f)
+      val quad = Leaf(17.5f, 27.5f, minimumSize/2, Seq(a))
+      
+      val b = new Body(3f, 54f, 46f, 0f, 0f)
+      val inserted = quad.insert(b)
+      
+      inserted match {
+        case Leaf(centerX, centerY, size, bodies) =>
+          assert(centerX == 17.5f, s"$centerX should be 17.5f")
+          assert(centerY == 27.5f, s"$centerY should be 27.5f")
+          assert(size == minimumSize/2, s"$size should be $minimumSize/2")
+          assert(bodies == Seq(a,b), s"$bodies should contain only the inserted body")
+        case _ =>
+          fail("when size <= minimumSize, Leaf.insert() should have returned a  Leaf with all the existing bodies and the new one, was $inserted")
+      }
+    }
+
+  test("Leaf.insert(b) should return should return a new Fork if size > minimumSize") {
+    val a = new Body(123f, 18f, 26f, 0f, 0f)
+    val quad = Leaf(17.5f, 27.5f, 5f, Seq(a))
+      
+    val b = new Body(3f, 54f, 46f, 0f, 0f)
+    val inserted = quad.insert(b)
+    
+    inserted match {
+      case Fork(nw, ne, sw, se) =>
+        assert(inserted.total == 2, s"${inserted.total} should be 2")
+        assert(inserted.mass == 126f, s"${inserted.total} should be 126f")
+        assert((ne.total==1)&&(ne.contain(a) == true), s"ne should contain only the existing body")
+        assert((se.total==1)&&(se.contain(b) == true), s"se should contain only the inserted body")        
+      case _ =>
+        fail("when size > minimumSize, Leaf.insert() should have returned a new Fork, was $inserted")
+    }
+  }
+  
   // test cases for Body
 
   test("Body.updated should do nothing for Empty quad trees") {
@@ -112,6 +174,60 @@ import FloatOps._
     assert(res, s"Body not found in the right sector")
   }
 
+  // test case for simulator computeBoundaries
+  test("'Simulator.updateBoundaries' should updates the minX, minY, maxX and maxY values so that the boundaries include the body") {
+    val body = new Body(5, 25, 47, 0.1f, 0.1f)
+
+    val boundaries = new Boundaries()
+    boundaries.minX = 50
+    boundaries.minY = 50
+    boundaries.maxX = 97
+    boundaries.maxY = 97
+    
+    val simulator = new Simulator(defaultTaskSupport,new TimeStatistics)
+    simulator.updateBoundaries(boundaries, body)
+    assert(boundaries.minX===25, s"${boundaries.minX} should be 25")
+    assert(boundaries.maxX===97, s"${boundaries.maxX} should be 97")
+    assert(boundaries.minY===47, s"${boundaries.minY} should be 47")
+    assert(boundaries.maxY===97, s"${boundaries.maxY} should be 97")
+  }
+  
+  test("'Simulator.mergeBoundaries' should  creates a new Boundaries object, which represents the smallest rectangle that contains both the input boundaries") {
+    val a = new Boundaries()
+    a.minX = 50
+    a.minY = 50
+    a.maxX = 97
+    a.maxY = 97
+
+    val b = new Boundaries()
+    b.minX = 10
+    b.minY = 10
+    b.maxX = 80
+    b.maxY = 80
+    
+    val simulator = new Simulator(defaultTaskSupport,new TimeStatistics)
+    val c = simulator.mergeBoundaries(a, b)
+    assert(c.minX===10, s"${c.minX} should be 10")
+    assert(c.maxX===97, s"${c.maxX} should be 97")
+    assert(c.minY===10, s"${c.minY} should be 10")
+    assert(c.maxY===97, s"${c.maxY} should be 97")
+  }
+  
+  test("'Simulator.computeSectorMatrix' should  creates a new sector matrix") {
+    val boundaries = new Boundaries()
+    boundaries.minX = 1
+    boundaries.minY = 1
+    boundaries.maxX = 97
+    boundaries.maxY = 97
+    
+    val body = new Body(5, 25, 47, 0.1f, 0.1f)
+    val simulator = new Simulator(defaultTaskSupport,new TimeStatistics)
+    val sm = simulator.computeSectorMatrix(Seq(body), boundaries)
+    
+    val res = sm(2, 3).size == 1 && sm(2, 3).find(_ == body).isDefined
+    assert(res, s"Body not found in the right sector")
+  }
+    
 }
 
 object FloatOps {
